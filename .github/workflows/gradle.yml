@@ -1,0 +1,30 @@
+name: Kotlin CI build with Gradle
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup JDK 1.8
+        uses: actions/setup-java@v2
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+      - name: Gradlew permission
+        run: chmod +x gradlew
+      - name: Gradle setup
+        run: ./gradlew clean wrapper
+      - name: Gradle test
+        run: ./gradlew test
+      - name: Gradle build
+        run: ./gradlew build
