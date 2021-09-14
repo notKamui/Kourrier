@@ -28,12 +28,17 @@ class KourrierIMAPSession internal constructor(
      *
      * Closes the folder without expunging it on exit.
      */
-    fun folder(name: String, mode: KourrierFolderMode, callback: KourrierFolder.() -> Unit) {
+    fun folder(
+        name: String,
+        mode: KourrierFolderMode,
+        expunge: Boolean = false,
+        callback: KourrierFolder.() -> Unit
+    ) {
         (store.getFolder(name) as IMAPFolder).apply {
             open(mode.toRawFolderMode())
             KourrierFolder(this).apply {
                 callback()
-                close(false)
+                close(expunge)
             }
         }
     }
@@ -51,7 +56,12 @@ fun Kourrier.imap(
     properties["mail.imap.ssl.enable"] = connectionInfo.enableSSL
     val session = Session.getInstance(properties)
     session.debug = connectionInfo.debugMode
-    val store = session.getStore("imap")
+    val store = session.getStore(
+        "imap${
+        if (connectionInfo.enableSSL) "s"
+        else ""
+        }"
+    )
     with(connectionInfo) {
         store.connect(hostname, port, username, password)
     }
@@ -64,7 +74,7 @@ fun Kourrier.imap(
  * and applies the [callback] lambda with itself as the receiver.
  *
  * - Debug mode can be enabled with [debugMode] (defaults to false).
- * - SSL can be enabled with [enableSSL] (defaults to false).
+ * - SSL can be enabled with [enableSSL] (defaults to true).
  */
 fun Kourrier.imap(
     hostname: String,
@@ -72,7 +82,7 @@ fun Kourrier.imap(
     username: String,
     password: String,
     debugMode: Boolean = false,
-    enableSSL: Boolean = false,
+    enableSSL: Boolean = true,
     properties: Properties = Properties(),
     callback: KourrierIMAPSession.() -> Unit
 ) {

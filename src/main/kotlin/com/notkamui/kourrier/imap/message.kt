@@ -2,6 +2,7 @@ package com.notkamui.kourrier.imap
 
 import com.sun.mail.imap.IMAPFolder
 import com.sun.mail.imap.IMAPMessage
+import javax.mail.internet.MimeMultipart
 
 /**
  * Wrapper around the standard [IMAPMessage].
@@ -20,7 +21,18 @@ class KourrierIMAPMessage(private val message: IMAPMessage) {
     }
 
     val body: String by lazy {
-        message.content as String
+        bodyParts.joinToString("\n")
+    }
+
+    val bodyParts: List<String> by lazy {
+        val content = message.content
+        if (content is MimeMultipart) {
+            (0 until content.count).map { part ->
+                content.getBodyPart(part).content as String
+            }
+        } else {
+            listOf(content as String)
+        }
     }
 }
 

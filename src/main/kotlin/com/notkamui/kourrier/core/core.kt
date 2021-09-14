@@ -14,7 +14,7 @@ object Kourrier
  * - the [password] of said user
  *
  * Optionally, debug mode can be enabled with [debugMode] (defaults to false),
- * and SSL can be enabled with [enableSSL] (defaults to false).
+ * and SSL can be enabled with [enableSSL] (defaults to true).
  */
 data class KourrierConnectionInfo(
     val hostname: String,
@@ -22,5 +22,5 @@ data class KourrierConnectionInfo(
     val username: String,
     val password: String,
     val debugMode: Boolean = false,
-    val enableSSL: Boolean = false,
+    val enableSSL: Boolean = true,
 )
