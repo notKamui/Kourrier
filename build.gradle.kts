@@ -6,6 +6,7 @@ val jvmVersion = "1.8"
 
 plugins {
     kotlin("jvm") version "1.5.30"
+    id("org.jlleitschuh.gradle.ktlint") version "10.2.0"
     java
     `maven-publish`
     signing
