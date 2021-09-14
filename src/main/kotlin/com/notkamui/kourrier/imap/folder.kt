@@ -37,10 +37,10 @@ class KourrierFolder(private val imapFolder: IMAPFolder) {
         get() = imapFolder.hasNewMessages()
 
     /**
-     * The [FolderType] of the current folder.
+     * The [KourrierFolderType] of the current folder.
      */
-    val folderType: FolderType
-        get() = FolderType.fromType(imapFolder.type)
+    val folderType: KourrierFolderType
+        get() = KourrierFolderType.fromRawFolderType(imapFolder.type)
 
     /**
      * Closes the current [IMAPFolder], and [expunge]s it or not (defaults to false).
@@ -74,7 +74,7 @@ class KourrierFolder(private val imapFolder: IMAPFolder) {
 /**
  * Represents the different access modes to a [KourrierFolder].
  */
-enum class FolderMode(private val mode: Int) {
+enum class KourrierFolderMode(private val rawMode: Int) {
     /**
      * Restrictive read permission.
      */
@@ -86,13 +86,13 @@ enum class FolderMode(private val mode: Int) {
     ReadWrite(Folder.READ_WRITE),
     ;
 
-    internal fun toMode(): Int = mode
+    internal fun toRawFolderMode(): Int = rawMode
 }
 
 /**
  * Represents the different types of [KourrierFolder]s.
  */
-enum class FolderType(private val type: Int) {
+enum class KourrierFolderType(private val rawType: Int) {
     /**
      * Holds only folders.
      */
@@ -111,9 +111,9 @@ enum class FolderType(private val type: Int) {
 
     companion object {
         /**
-         * Obtains a [FolderType] from the given [type].
+         * Obtains a [KourrierFolderType] from the given [type].
          */
-        fun fromType(type: Int): FolderType {
+        fun fromRawFolderType(type: Int): KourrierFolderType {
             val holdsFolders = type and Folder.HOLDS_FOLDERS
             val holdsMessages = type and Folder.HOLDS_MESSAGES
             return when {
@@ -125,11 +125,11 @@ enum class FolderType(private val type: Int) {
         }
     }
 
-    internal fun toJavaMailFolderType(): Int = type
+    internal fun toRawFolderType(): Int = rawType
 }
 
 /**
- * Is thrown when a [FolderType] is unknown or invalid.
+ * Is thrown when a [KourrierFolderType] is unknown or invalid.
  */
 class UnknownFolderTypeException : Exception()
 

@@ -28,9 +28,9 @@ class KourrierIMAPSession internal constructor(
      *
      * Closes the folder without expunging it on exit.
      */
-    fun folder(name: String, mode: FolderMode, callback: KourrierFolder.() -> Unit) {
+    fun folder(name: String, mode: KourrierFolderMode, callback: KourrierFolder.() -> Unit) {
         (store.getFolder(name) as IMAPFolder).apply {
-            open(mode.toMode())
+            open(mode.toRawFolderMode())
             KourrierFolder(this).apply {
                 callback()
                 close(false)
