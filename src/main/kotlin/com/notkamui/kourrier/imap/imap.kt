@@ -4,7 +4,7 @@ import com.notkamui.kourrier.core.Kourrier
 import com.notkamui.kourrier.core.KourrierConnectionInfo
 import com.sun.mail.imap.IMAPFolder
 import java.io.Closeable
-import java.util.*
+import java.util.Properties
 import javax.mail.Session
 import javax.mail.Store
 
