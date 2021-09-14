@@ -1,4 +1,4 @@
-package com.notkamui.kourrier.core.imap
+package com.notkamui.kourrier.imap
 
 import com.sun.mail.imap.IMAPFolder
 import com.sun.mail.imap.IMAPMessage

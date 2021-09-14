@@ -1,4 +1,4 @@
-package com.notkamui.kourrier.core.imap
+package com.notkamui.kourrier.imap
 
 import com.notkamui.kourrier.core.Kourrier
 import com.notkamui.kourrier.core.KourrierConnectionInfo
