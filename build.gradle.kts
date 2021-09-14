@@ -16,6 +16,7 @@ repositories {
 }
 
 dependencies {
+    implementation("com.sun.mail:javax.mail:1.6.2")
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.5.21")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.5.21")
 }
