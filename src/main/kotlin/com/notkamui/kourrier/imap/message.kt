@@ -6,7 +6,7 @@ import com.sun.mail.imap.IMAPMessage
 /**
  * Wrapper around the standard [IMAPMessage].
  */
-class KourrierMessage(private val message: IMAPMessage) {
+class KourrierIMAPMessage(private val message: IMAPMessage) {
     val uid: Long by lazy {
         message.messageUID
     }
