@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 group = "com.notkamui.libs"
 version = "0.0.1"
@@ -10,6 +11,16 @@ plugins {
     java
     `maven-publish`
     signing
+}
+
+ktlint {
+    debug.set(true)
+    outputToConsole.set(true)
+    disabledRules.add("filename")
+    reporters {
+        reporter(ReporterType.CHECKSTYLE)
+        reporter(ReporterType.PLAIN)
+    }
 }
 
 repositories {
