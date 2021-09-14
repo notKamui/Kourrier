@@ -30,9 +30,15 @@ class KourrierFolder(private val imapFolder: IMAPFolder) {
     val newCount: Int
         get() = imapFolder.newMessageCount
 
+    /**
+     * Is true if the current folder contains at least one new message.
+     */
     val hasNewMessages: Boolean
         get() = imapFolder.hasNewMessages()
 
+    /**
+     * The [FolderType] of the current folder.
+     */
     val folderType: FolderType
         get() = FolderType.fromType(imapFolder.type)
 
