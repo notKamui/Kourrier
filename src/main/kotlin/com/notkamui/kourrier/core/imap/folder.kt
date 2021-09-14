@@ -43,10 +43,10 @@ class KourrierFolder(private val imapFolder: IMAPFolder) {
         get() = FolderType.fromType(imapFolder.type)
 
     /**
-     * Closes the current [IMAPFolder], and [clean]s it or not (defaults to false).
+     * Closes the current [IMAPFolder], and [expunge]s it or not (defaults to false).
      */
-    fun close(clean: Boolean = false) {
-        imapFolder.close(clean)
+    fun close(expunge: Boolean = false) {
+        imapFolder.close(expunge)
     }
 
     /**
