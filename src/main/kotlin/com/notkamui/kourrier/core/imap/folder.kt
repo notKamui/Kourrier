@@ -13,6 +13,30 @@ class KourrierFolder(private val imapFolder: IMAPFolder) {
     private var profile = FetchProfile()
 
     /**
+     * Amount of messages in the current folder.
+     */
+    val messageCount: Int
+        get() = imapFolder.messageCount
+
+    /**
+     * Amount of unread messages in the current folder.
+     */
+    val unreadCount: Int
+        get() = imapFolder.unreadMessageCount
+
+    /**
+     * Amount of new messages in the current folder.
+     */
+    val newCount: Int
+        get() = imapFolder.newMessageCount
+
+    val hasNewMessages: Boolean
+        get() = imapFolder.hasNewMessages()
+
+    val folderType: FolderType
+        get() = FolderType.fromType(imapFolder.type)
+
+    /**
      * Closes the current [IMAPFolder], and [clean]s it or not (defaults to false).
      */
     fun close(clean: Boolean = false) {
@@ -94,6 +118,8 @@ enum class FolderType(private val type: Int) {
             }
         }
     }
+
+    internal fun toJavaMailFolderType(): Int = type
 }
 
 /**
