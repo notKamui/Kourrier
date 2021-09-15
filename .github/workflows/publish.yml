@@ -1,0 +1,38 @@
+name: Publish artifact on MavenCentral and GithubPackages
+
+on:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Gradle properties
+        run: |
+          echo "signing.gnupg.executable=gpg" >> gradle.properties
+          echp "signing.gnupg.useLegacyGpg=true" >> gradle.properties
+          echo "signing.gnupg.homeDir=." >> gradle.properties
+          echo "signing.gnupg.keyName=${{ secrets.GPG_KEYNAME }}" >> gradle.properties
+          echo "signing.gnupg.passphrase=${{ secrets.GPG_PASSPHRASE }}" >> gradle.properties
+          echo "ossrhUsername=${{ secrets.OSSRH_USERNAME }}" >> gradle.properties
+          echo "ossrhPassword=${{ secrets.OSSRH_PASSWORD }}" >> gradle.properties
+          echo "githubUsername=${{ secrets.GH_USERNAME }}" >> gradle.properties
+          echo "githubPassword=${{ secrets.GH_PASSWORD }}" >> gradle.properties
+      - name: Setup JDK 1.8
+        uses: actions/setup-java@v2
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+      - name: Gradlew permission
+        run: chmod +x gradlew
+      - name: Gradle setup
+        run: ./gradlew clean wrapper
+      - name: Gradle publish
+        run: ./gradlew publish
+          
