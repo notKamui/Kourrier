@@ -24,7 +24,7 @@ jobs:
         run: chmod +x gradlew
       - name: Gradle setup
         run: ./gradlew clean wrapper
-      - name: Gradle test
+      - name: Gradle test ktlintCheck
         run: ./gradlew test
       - name: Gradle build
         run: ./gradlew build
