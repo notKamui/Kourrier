@@ -36,4 +36,3 @@ jobs:
         run: ./gradlew clean wrapper
       - name: Gradle publish
         run: ./gradlew publish
-          
