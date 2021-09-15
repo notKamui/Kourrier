@@ -17,7 +17,7 @@ jobs:
       - name: Gradle properties
         run: |
           echo "signing.gnupg.executable=gpg" >> gradle.properties
-          echp "signing.gnupg.useLegacyGpg=true" >> gradle.properties
+          echo "signing.gnupg.useLegacyGpg=true" >> gradle.properties
           echo "signing.gnupg.homeDir=." >> gradle.properties
           echo "signing.gnupg.keyName=${{ secrets.GPG_KEYNAME }}" >> gradle.properties
           echo "signing.gnupg.passphrase=${{ secrets.GPG_PASSPHRASE }}" >> gradle.properties
