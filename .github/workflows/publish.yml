@@ -1,6 +1,6 @@
 name: Publish artifact on MavenCentral and GithubPackages
 
-on:
+on: []
 
 jobs:
   publish:
