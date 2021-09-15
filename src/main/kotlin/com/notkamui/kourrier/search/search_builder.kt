@@ -145,7 +145,7 @@ class KourrierSearch {
      *
      * **(Must be added manually using `+` or `!`)**
      */
-    fun student(pattern: String): SubjectTerm = SubjectTerm(pattern)
+    fun subject(pattern: String): SubjectTerm = SubjectTerm(pattern)
 
     /**
      * Returns a [BodyTerm] of the given [pattern].
