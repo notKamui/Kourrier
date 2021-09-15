@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 group = "com.notkamui.libs"
 version = "0.0.1"
@@ -6,9 +7,20 @@ val jvmVersion = "1.8"
 
 plugins {
     kotlin("jvm") version "1.5.30"
+    id("org.jlleitschuh.gradle.ktlint") version "10.2.0"
     java
     `maven-publish`
     signing
+}
+
+ktlint {
+    debug.set(true)
+    outputToConsole.set(true)
+    disabledRules.add("filename")
+    reporters {
+        reporter(ReporterType.CHECKSTYLE)
+        reporter(ReporterType.PLAIN)
+    }
 }
 
 repositories {
@@ -16,6 +28,7 @@ repositories {
 }
 
 dependencies {
+    implementation("com.sun.mail:javax.mail:1.6.2")
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.5.21")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.5.21")
 }
