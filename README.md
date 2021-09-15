@@ -19,8 +19,8 @@ repository:
 <dependencies>
   <dependency>
     <groupId>com.notkamui.libs</groupId>
-    <artifactId>keval</artifactId>
-    <version>0.7.4</version>
+    <artifactId>kourrier</artifactId>
+    <version>0.0.2</version>
   </dependency>
 </dependencies>
 ```
@@ -37,7 +37,7 @@ repositories {
 }
 
 dependencies {
-  implementation("com.notkamui.libs:kourrier:0.0.1")
+  implementation("com.notkamui.libs:kourrier:0.0.2")
 }
 ```
 </p>
@@ -53,7 +53,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.notkamui.libs:kourrier:0.0.1'
+  implementation 'com.notkamui.libs:kourrier:0.0.2'
 }
 ```
 </p>
