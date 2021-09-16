@@ -35,8 +35,8 @@ class KourrierIMAPSession internal constructor(
         session.debug = connectionInfo.debugMode
         store = session.getStore(
             "imap${
-                if (connectionInfo.enableSSL) "s"
-                else ""
+            if (connectionInfo.enableSSL) "s"
+            else ""
             }"
         )
         open()
@@ -141,7 +141,6 @@ fun Kourrier.imap(
     properties: Properties = Properties(),
 ): KourrierIMAPSession =
     KourrierIMAPSession(connectionInfo, properties)
-
 
 /**
  * Opens an IMAP session using the specified credentials
