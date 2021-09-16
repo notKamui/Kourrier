@@ -1,5 +1,6 @@
 package com.notkamui.kourrier.search
 
+import com.notkamui.kourrier.core.UnknownSortTermException
 import com.sun.mail.imap.SortTerm
 
 /**
@@ -24,8 +25,3 @@ enum class KourrierSortTerm(private val rawSortTerm: SortTerm) {
 
     fun toRawSortTerm(): SortTerm = rawSortTerm
 }
-
-/**
- * Is thrown when a [KourrierSortTerm] is unknown or invalid.
- */
-class UnknownSortTermException : Exception()

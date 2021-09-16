@@ -2,6 +2,7 @@ package com.notkamui.kourrier.imap
 
 import com.notkamui.kourrier.core.KourrierFlag
 import com.notkamui.kourrier.core.KourrierFlags
+import com.notkamui.kourrier.core.UnknownFolderTypeException
 import com.notkamui.kourrier.search.KourrierSearch
 import com.notkamui.kourrier.search.KourrierSort
 import com.sun.mail.imap.IMAPFolder
@@ -201,11 +202,6 @@ enum class KourrierFolderType(private val rawType: Int) {
 
     internal fun toRawFolderType(): Int = rawType
 }
-
-/**
- * Is thrown when a [KourrierFolderType] is unknown or invalid.
- */
-class UnknownFolderTypeException : Exception()
 
 private operator fun IMAPFolder.get(index: Int): KourrierIMAPMessage? =
     (getMessage(index) as IMAPMessage?)?.let {
