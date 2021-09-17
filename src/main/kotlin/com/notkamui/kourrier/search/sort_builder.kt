@@ -2,7 +2,7 @@ package com.notkamui.kourrier.search
 
 import com.sun.mail.imap.SortTerm
 
-class KourrierSort {
+class KourrierSort internal constructor() {
     private val sortTerms = mutableListOf<KourrierSortTerm>()
 
     fun build(): List<KourrierSortTerm> = sortTerms

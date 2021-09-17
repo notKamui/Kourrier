@@ -28,7 +28,7 @@ import javax.mail.search.SubjectTerm
 /**
  * DSL builder for creating a valid [SearchTerm].
  */
-class KourrierSearch {
+class KourrierSearch internal constructor() {
     private val terms = mutableListOf<SearchTerm>()
     private val sortedBy = mutableSetOf<KourrierSortTerm>()
 

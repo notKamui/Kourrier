@@ -14,7 +14,7 @@ import javax.mail.Message
 /**
  * Wrapper around the standard [IMAPFolder].
  */
-class KourrierFolder(private val imapFolder: IMAPFolder) {
+class KourrierFolder internal constructor(private val imapFolder: IMAPFolder) {
     private var profile = FetchProfile()
 
     /**

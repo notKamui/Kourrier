@@ -36,7 +36,10 @@ class KourrierIMAPMessage(private val message: IMAPMessage) {
     }
 }
 
-data class KourrierMessageHeader(val name: String, val value: String)
+data class KourrierMessageHeader internal constructor(
+    val name: String,
+    val value: String,
+)
 
 private val IMAPMessage.messageUID: Long
     get() = (folder as IMAPFolder).getUID(this)

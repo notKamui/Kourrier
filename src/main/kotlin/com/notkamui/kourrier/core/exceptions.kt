@@ -13,7 +13,8 @@ internal constructor(message: String) : IllegalStateException(message)
 /**
  * Is thrown when a [KourrierFolderType] is unknown or invalid.
  */
-class UnknownFolderTypeException : Exception()
+class UnknownFolderTypeException
+internal constructor() : Exception()
 
 /**
  * Is thrown when a [KourrierSortTerm] is unknown or invalid.
