@@ -2,6 +2,9 @@ package com.notkamui.kourrier.imap
 
 import java.util.EventListener
 
+/**
+ * [EventListener] interface of [KourrierFolder] to listen to [KourrierIMAPMessage]s.
+ */
 interface KourrierFolderListener : EventListener {
     /**
      * Is launched when a [message] is received.
@@ -24,6 +27,9 @@ interface KourrierFolderListener : EventListener {
     fun onMessageEnvelopeChanged(message: KourrierIMAPMessage)
 }
 
+/**
+ * Generic adapter for [KourrierFolderListener].
+ */
 open class KourrierFolderAdapter : KourrierFolderListener {
     override fun onMessageReceived(message: KourrierIMAPMessage) {
         /* Default */

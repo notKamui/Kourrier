@@ -3,7 +3,6 @@ package com.notkamui.kourrier.search
 import java.util.Date
 import javax.mail.search.AndTerm
 import javax.mail.search.ComparisonTerm
-import javax.mail.search.NotTerm
 import javax.mail.search.OrTerm
 import javax.mail.search.ReceivedDateTerm
 import javax.mail.search.SearchTerm
@@ -104,8 +103,3 @@ infix fun SearchTerm.and(other: SearchTerm): AndTerm = AndTerm(this, other)
  * Creates an [OrTerm] of [this] received term and [other] term.
  */
 infix fun SearchTerm.or(other: SearchTerm): OrTerm = OrTerm(this, other)
-
-/**
- * Creates an [NotTerm] of [this] received term.
- */
-operator fun SearchTerm.not(): NotTerm = NotTerm(this)

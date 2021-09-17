@@ -2,32 +2,52 @@ package com.notkamui.kourrier.imap
 
 import com.sun.mail.imap.IMAPFolder
 import com.sun.mail.imap.IMAPMessage
+import javax.mail.Header
 import javax.mail.internet.MimeMultipart
 
 /**
  * Wrapper around the standard [IMAPMessage].
  */
 class KourrierIMAPMessage(private val message: IMAPMessage) {
+    /**
+     * UID of the message.
+     */
     val uid: Long by lazy {
-        message.messageUID
+        (message.folder as IMAPFolder).getUID(message)
     }
 
+    /**
+     * Sender of the message.
+     */
     val from: String by lazy {
         message.from[0].toString()
     }
 
+    /**
+     * List of [KourrierMessageHeader] of the message.
+     */
     val headers: List<KourrierMessageHeader> by lazy {
         message.allHeaders.toList().map { KourrierMessageHeader(it.name, it.value) }
     }
 
+    /**
+     * Subject of the message.
+     */
     val subject: String by lazy {
         message.subject
     }
 
+    /**
+     * Body of the message. Joined in one [String] even if multipart.
+     */
     val body: String by lazy {
         bodyParts.joinToString("\n")
     }
 
+    /**
+     * Body of the message, with each part being a list entry.
+     * (If the message is not multipart, the length will be 1)
+     */
     val bodyParts: List<String> by lazy {
         val content = message.content
         if (content is MimeMultipart) {
@@ -40,10 +60,17 @@ class KourrierIMAPMessage(private val message: IMAPMessage) {
     }
 }
 
+/**
+ * Wrapper around the standard [Header].
+ */
 data class KourrierMessageHeader internal constructor(
+    /**
+     * Name of the header.
+     */
     val name: String,
+
+    /**
+     * Value of the header.
+     */
     val value: String,
 )
-
-private val IMAPMessage.messageUID: Long
-    get() = (folder as IMAPFolder).getUID(this)
