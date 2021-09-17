@@ -83,7 +83,9 @@ class KourrierIMAPSession internal constructor(
      *
      * A [listener] can be given.
      *
-     * **Note that the returned folder should be closed at some point**
+     * **Note that the returned folder should be closed at some point.**
+     *
+     * **Note that some mail servers need ReadWrite permissions for a folder to be listenable.**
      *
      * @throws KourrierIMAPSessionStateException if the session is closed.
      */
