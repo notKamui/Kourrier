@@ -17,10 +17,33 @@ object Kourrier
  * and SSL can be enabled with [enableSSL] (defaults to true).
  */
 data class KourrierConnectionInfo(
+    /**
+     * Hostname of the server.
+     */
     val hostname: String,
+
+    /**
+     * Port to open the connection (e.g. 993).
+     */
     val port: Int,
+
+    /**
+     * Username which to log in with.
+     */
     val username: String,
+
+    /**
+     * Password of the user.
+     */
     val password: String,
+
+    /**
+     * Launch connection in debug mode (defaults to false).
+     */
     val debugMode: Boolean = false,
+
+    /**
+     * Enable SSL on the connection (defaults to true).
+     */
     val enableSSL: Boolean = true,
 )
