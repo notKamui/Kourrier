@@ -2,6 +2,8 @@ package com.notkamui.kourrier.imap
 
 import com.notkamui.kourrier.core.KourrierFlag
 import com.notkamui.kourrier.core.KourrierFlags
+import com.notkamui.kourrier.core.KourrierIMAPFolderStateException
+import com.notkamui.kourrier.core.UnknownFolderTypeException
 import com.notkamui.kourrier.search.KourrierSearch
 import com.notkamui.kourrier.search.KourrierSort
 import com.sun.mail.imap.IMAPFolder
@@ -13,8 +15,14 @@ import javax.mail.Message
 /**
  * Wrapper around the standard [IMAPFolder].
  */
-class KourrierFolder(private val imapFolder: IMAPFolder) {
+class KourrierFolder internal constructor(internal val imapFolder: IMAPFolder) {
     private var profile = FetchProfile()
+
+    /**
+     * The current state of the folder.
+     */
+    val isOpen: Boolean
+        get() = imapFolder.isOpen
 
     /**
      * Amount of messages in the current folder.
@@ -48,9 +56,26 @@ class KourrierFolder(private val imapFolder: IMAPFolder) {
 
     /**
      * Closes the current [IMAPFolder], and [expunge]s it or not (defaults to false).
+     *
+     * @throws KourrierIMAPFolderStateException if the folder is already closed.
      */
     fun close(expunge: Boolean = false) {
+        if (!imapFolder.isOpen)
+            throw KourrierIMAPFolderStateException("Cannot close a folder that is already closed.")
+
         imapFolder.close(expunge)
+    }
+
+    /**
+     * Opens the current [IMAPFolder] with the given [mode].
+     *
+     * @throws KourrierIMAPFolderStateException if the folder is already open.
+     */
+    fun open(mode: KourrierFolderMode) {
+        if (imapFolder.isOpen)
+            throw KourrierIMAPFolderStateException("Cannot open a folder that is already open.")
+
+        imapFolder.open(mode.toRawFolderMode())
     }
 
     /**
@@ -201,11 +226,6 @@ enum class KourrierFolderType(private val rawType: Int) {
 
     internal fun toRawFolderType(): Int = rawType
 }
-
-/**
- * Is thrown when a [KourrierFolderType] is unknown or invalid.
- */
-class UnknownFolderTypeException : Exception()
 
 private operator fun IMAPFolder.get(index: Int): KourrierIMAPMessage? =
     (getMessage(index) as IMAPMessage?)?.let {
