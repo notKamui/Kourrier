@@ -20,6 +20,10 @@ class KourrierIMAPMessage(private val message: IMAPMessage) {
         message.allHeaders.toList().map { KourrierMessageHeader(it.name, it.value) }
     }
 
+    val subject: String by lazy {
+        message.subject
+    }
+
     val body: String by lazy {
         bodyParts.joinToString("\n")
     }

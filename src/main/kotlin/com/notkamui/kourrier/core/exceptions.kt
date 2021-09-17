@@ -10,14 +10,17 @@ import com.notkamui.kourrier.search.KourrierSortTerm
 class KourrierIMAPSessionStateException
 internal constructor(message: String) : IllegalStateException(message)
 
+class KourrierIMAPFolderStateException
+internal constructor(message: String) : IllegalStateException(message)
+
 /**
  * Is thrown when a [KourrierFolderType] is unknown or invalid.
  */
 class UnknownFolderTypeException
-internal constructor() : Exception()
+internal constructor() : IllegalArgumentException()
 
 /**
  * Is thrown when a [KourrierSortTerm] is unknown or invalid.
  */
 class UnknownSortTermException
-internal constructor() : Exception()
+internal constructor() : IllegalArgumentException()

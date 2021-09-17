@@ -11,8 +11,9 @@ import java.util.Properties
 import java.util.concurrent.Executors
 import javax.mail.Session
 import javax.mail.Store
-import javax.mail.event.MessageCountAdapter
+import javax.mail.event.MessageChangedEvent
 import javax.mail.event.MessageCountEvent
+import javax.mail.event.MessageCountListener
 
 /**
  * Wrapper around JavaMail [Store] session with IMAP helpers
@@ -76,60 +77,63 @@ class KourrierIMAPSession internal constructor(
     }
 
     /**
-     * Opens a folder in the current session by its [name],
+     * Opens and returns a [KourrierFolder] in the current session by its [name],
      * with the given [mode],
      * and applies the [callback] lambda with itself as the receiver.
      *
-     * Automatically closes the folder without expunging it on exit or not
-     * depending on the value of [expunge].
+     * A [listener] can be given.
+     *
+     * **Note that the returned folder should be closed at some point**
      *
      * @throws KourrierIMAPSessionStateException if the session is closed.
      */
     fun folder(
         name: String,
         mode: KourrierFolderMode,
-        expunge: Boolean = false,
-        callback: KourrierFolder.() -> Unit
-    ) {
-        if (!store.isConnected)
-            throw KourrierIMAPSessionStateException("Cannot interact with a closed session.")
-
-        (store.getFolder(name) as IMAPFolder).apply {
-            open(mode.toRawFolderMode())
-            KourrierFolder(this).apply {
-                callback()
-                close(expunge)
-            }
-        }
-    }
-
-    /**
-     * Opens a [KourrierFolder] by its [name], returns it, and listens to it
-     * to apply [onReceive] on each [KourrierIMAPMessage] received.
-     *
-     * **Note that the returned folder should be closed at some point**
-     *
-     * @throws KourrierIMAPSessionStateException if the session is closed.
-     */
-    fun listenFolder(
-        name: String,
-        onReceive: KourrierIMAPMessage.() -> Unit
+        listener: KourrierFolderListener? = null,
+        callback: KourrierFolder.() -> Unit = {}
     ): KourrierFolder {
         if (!store.isConnected)
             throw KourrierIMAPSessionStateException("Cannot interact with a closed session.")
 
         val folder = store.getFolder(name) as IMAPFolder
-        folder.open(KourrierFolderMode.ReadWrite.toRawFolderMode())
-        folder.addMessageCountListener(object : MessageCountAdapter() {
+        folder.open(mode.toRawFolderMode())
+        val kfolder = KourrierFolder(folder)
+        listener?.let { kfolder.addListener(it) }
+        kfolder.callback()
+        return kfolder
+    }
+
+    /**
+     * Adds a [listener] to a [KourrierFolder].
+     */
+    fun KourrierFolder.addListener(listener: KourrierFolderListener) {
+        this.imapFolder.addMessageCountListener(object : MessageCountListener {
             override fun messagesAdded(event: MessageCountEvent) {
                 event.messages.forEach {
-                    KourrierIMAPMessage(it as IMAPMessage).onReceive()
+                    listener.onMessageReceived(KourrierIMAPMessage(it as IMAPMessage))
                 }
-                idleManager.watch(folder)
+                idleManager.watch(this@addListener.imapFolder)
+            }
+
+            override fun messagesRemoved(event: MessageCountEvent) {
+                event.messages.forEach {
+                    listener.onMessageRemoved(KourrierIMAPMessage(it as IMAPMessage))
+                }
+                idleManager.watch(this@addListener.imapFolder)
             }
         })
-        idleManager.watch(folder)
-        return KourrierFolder(folder)
+
+        this.imapFolder.addMessageChangedListener { event: MessageChangedEvent ->
+            val message = KourrierIMAPMessage(event.message as IMAPMessage)
+            when (event.messageChangeType) {
+                MessageChangedEvent.FLAGS_CHANGED -> listener.onMessageFlagsChanged(message)
+                MessageChangedEvent.ENVELOPE_CHANGED -> listener.onMessageEnvelopeChanged(message)
+            }
+            idleManager.watch(this.imapFolder)
+        }
+
+        idleManager.watch(this.imapFolder)
     }
 }
 
