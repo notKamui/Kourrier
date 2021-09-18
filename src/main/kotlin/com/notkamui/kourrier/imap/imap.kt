@@ -11,6 +11,8 @@ import java.util.Properties
 import java.util.concurrent.Executors
 import javax.mail.Session
 import javax.mail.Store
+import javax.mail.event.ConnectionAdapter
+import javax.mail.event.ConnectionEvent
 import javax.mail.event.MessageChangedEvent
 import javax.mail.event.MessageCountEvent
 import javax.mail.event.MessageCountListener
@@ -20,11 +22,18 @@ import javax.mail.event.MessageCountListener
  */
 class KourrierIMAPSession internal constructor(
     private val connectionInfo: KourrierConnectionInfo,
+    private val keepAlive: Boolean,
     properties: Properties,
 ) : Closeable {
     private val session: Session
     private val store: Store
     private lateinit var idleManager: IdleManager
+
+    private val connectionListener = object : ConnectionAdapter() {
+        override fun disconnected(e: ConnectionEvent?) {
+            setConnection()
+        }
+    }
 
     val isOpen: Boolean
         get() = store.isConnected
@@ -51,8 +60,16 @@ class KourrierIMAPSession internal constructor(
     override fun close() {
         if (!store.isConnected)
             throw KourrierIMAPSessionStateException("Cannot close a session that is already closed.")
+        store.removeConnectionListener(connectionListener)
         idleManager.stop()
         store.close()
+    }
+
+    private fun setConnection() {
+        idleManager = IdleManager(session, Executors.newCachedThreadPool())
+        with(connectionInfo) {
+            store.connect(hostname, port, username, password)
+        }
     }
 
     /**
@@ -63,9 +80,9 @@ class KourrierIMAPSession internal constructor(
     fun open() {
         if (store.isConnected)
             throw KourrierIMAPSessionStateException("Cannot open a session that is already open.")
-        idleManager = IdleManager(session, Executors.newCachedThreadPool())
-        with(connectionInfo) {
-            store.connect(hostname, port, username, password)
+        setConnection()
+        if (keepAlive) {
+            store.addConnectionListener(connectionListener)
         }
     }
 
@@ -99,8 +116,7 @@ class KourrierIMAPSession internal constructor(
             throw KourrierIMAPSessionStateException("Cannot interact with a closed session.")
 
         val folder = store.getFolder(name) as IMAPFolder
-        folder.open(mode.toRawFolderMode())
-        val kfolder = KourrierFolder(folder)
+        val kfolder = KourrierFolder(folder, mode, keepAlive)
         listener?.let { kfolder.addListener(it) }
         kfolder.callback()
         return kfolder
@@ -141,12 +157,17 @@ class KourrierIMAPSession internal constructor(
 
 /**
  * Opens an IMAP session using the [connectionInfo] and [properties].
+ *
+ * [keepAlive] is an optional parameter that indicates whether
+ * the connection should be kept alive at all cost (until being close manually).
+ * (defaults to false)
  */
 fun Kourrier.imap(
     connectionInfo: KourrierConnectionInfo,
+    keepAlive: Boolean = false,
     properties: Properties = Properties(),
 ): KourrierIMAPSession =
-    KourrierIMAPSession(connectionInfo, properties)
+    KourrierIMAPSession(connectionInfo, keepAlive, properties)
 
 /**
  * Opens an IMAP session using the specified credentials
@@ -154,6 +175,10 @@ fun Kourrier.imap(
  *
  * - Debug mode can be enabled with [debugMode] (defaults to false).
  * - SSL can be enabled with [enableSSL] (defaults to true).
+ *
+ * [keepAlive] is an optional parameter that indicates whether
+ * the connection should be kept alive at all cost (until being close manually).
+ * (defaults to false)
  */
 fun Kourrier.imap(
     hostname: String,
@@ -162,6 +187,7 @@ fun Kourrier.imap(
     password: String,
     debugMode: Boolean = false,
     enableSSL: Boolean = true,
+    keepAlive: Boolean = false,
     properties: Properties = Properties()
 ): KourrierIMAPSession =
     KourrierConnectionInfo(
@@ -172,5 +198,5 @@ fun Kourrier.imap(
         debugMode,
         enableSSL,
     ).run {
-        imap(this, properties)
+        imap(this, keepAlive, properties)
     }

@@ -11,12 +11,26 @@ import com.sun.mail.imap.IMAPMessage
 import javax.mail.FetchProfile
 import javax.mail.Folder
 import javax.mail.Message
+import javax.mail.event.ConnectionAdapter
+import javax.mail.event.ConnectionEvent
 
 /**
  * Wrapper around the standard [IMAPFolder].
  */
-class KourrierFolder internal constructor(internal val imapFolder: IMAPFolder) {
+class KourrierFolder internal constructor(
+    internal val imapFolder: IMAPFolder,
+    private var mode: KourrierFolderMode,
+    private val keepAlive: Boolean,
+) {
     private var profile = FetchProfile()
+
+    private val connectionListener = object : ConnectionAdapter() {
+        override fun disconnected(e: ConnectionEvent?) {
+            println("Disconnected")
+            setConnection(mode)
+            println("Reconnected")
+        }
+    }
 
     /**
      * The current state of the folder.
@@ -54,6 +68,10 @@ class KourrierFolder internal constructor(internal val imapFolder: IMAPFolder) {
     val folderType: KourrierFolderType
         get() = KourrierFolderType.fromRawFolderType(imapFolder.type)
 
+    init {
+        open(mode)
+    }
+
     /**
      * Closes the current [IMAPFolder], and [expunge]s it or not (defaults to false).
      *
@@ -63,7 +81,13 @@ class KourrierFolder internal constructor(internal val imapFolder: IMAPFolder) {
         if (!imapFolder.isOpen)
             throw KourrierIMAPFolderStateException("Cannot close a folder that is already closed.")
 
+        imapFolder.removeConnectionListener(connectionListener)
         imapFolder.close(expunge)
+    }
+
+    private fun setConnection(mode: KourrierFolderMode) {
+        imapFolder.open(mode.toRawFolderMode())
+        this.mode = mode
     }
 
     /**
@@ -75,7 +99,10 @@ class KourrierFolder internal constructor(internal val imapFolder: IMAPFolder) {
         if (imapFolder.isOpen)
             throw KourrierIMAPFolderStateException("Cannot open a folder that is already open.")
 
-        imapFolder.open(mode.toRawFolderMode())
+        setConnection(mode)
+        if (keepAlive) {
+            imapFolder.addConnectionListener(connectionListener)
+        }
     }
 
     /**
