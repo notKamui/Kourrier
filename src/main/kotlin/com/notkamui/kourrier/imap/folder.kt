@@ -106,9 +106,9 @@ class KourrierFolder internal constructor(
         }
         keeper?.scheduleAtFixedRate(
             job,
-            120_000L,
-            120_000L,
-            TimeUnit.MILLISECONDS
+            1,
+            1,
+            TimeUnit.MINUTES
         )
     }
 
