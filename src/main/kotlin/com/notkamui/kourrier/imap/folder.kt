@@ -3,19 +3,18 @@ package com.notkamui.kourrier.imap
 import com.notkamui.kourrier.core.KourrierFlag
 import com.notkamui.kourrier.core.KourrierFlags
 import com.notkamui.kourrier.core.KourrierIMAPFolderStateException
+import com.notkamui.kourrier.core.KourrierIMAPSessionStateException
 import com.notkamui.kourrier.core.UnknownFolderTypeException
 import com.notkamui.kourrier.search.KourrierSearch
 import com.notkamui.kourrier.search.KourrierSort
 import com.sun.mail.imap.IMAPFolder
 import com.sun.mail.imap.IMAPMessage
 import com.sun.mail.imap.IdleManager
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.TimeUnit
 import javax.mail.FetchProfile
 import javax.mail.Folder
 import javax.mail.FolderClosedException
 import javax.mail.Message
+import javax.mail.StoreClosedException
 
 /**
  * Wrapper around the standard [IMAPFolder].
@@ -28,7 +27,25 @@ class KourrierFolder internal constructor(
 ) {
     private var profile = FetchProfile()
 
-    private var keeper: ScheduledExecutorService? = null
+    private val job = Thread {
+        fun reIdle() {
+            imapFolder.doCommand {
+                it.simpleCommand("NOOP", null)
+                null
+            }
+            idleManager.watch(imapFolder)
+        }
+        while (true) {
+            Thread.sleep(60_000L)
+            try {
+                reIdle()
+            } catch (e: FolderClosedException) {
+                setConnection(mode)
+            } catch (e: StoreClosedException) {
+                throw KourrierIMAPSessionStateException("Couldn't keep ${imapFolder.name} open. Session was forcefully closed.")
+            }
+        }
+    }
 
     /**
      * The current state of the folder.
@@ -79,37 +96,13 @@ class KourrierFolder internal constructor(
         if (!imapFolder.isOpen)
             throw KourrierIMAPFolderStateException("Cannot close a folder that is already closed.")
 
-        keeper?.shutdown()
+        job.interrupt()
         imapFolder.close(expunge)
     }
 
     private fun setConnection(mode: KourrierFolderMode) {
         imapFolder.open(mode.toRawFolderMode())
         this.mode = mode
-    }
-
-    private fun setKeepAlive() {
-        keeper = Executors.newScheduledThreadPool(1)
-        val job = Runnable {
-            fun reIdle() {
-                imapFolder.doCommand {
-                    it.simpleCommand("NOOP", null)
-                    null
-                }
-                idleManager.watch(imapFolder)
-            }
-            try {
-                reIdle()
-            } catch (e: FolderClosedException) {
-                open(mode)
-            }
-        }
-        keeper?.scheduleAtFixedRate(
-            job,
-            1,
-            1,
-            TimeUnit.MINUTES
-        )
     }
 
     /**
@@ -123,7 +116,7 @@ class KourrierFolder internal constructor(
 
         setConnection(mode)
         if (keepAlive) {
-            setKeepAlive()
+            job.start()
         }
     }
 
