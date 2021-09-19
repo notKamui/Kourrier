@@ -8,11 +8,14 @@ import com.notkamui.kourrier.search.KourrierSearch
 import com.notkamui.kourrier.search.KourrierSort
 import com.sun.mail.imap.IMAPFolder
 import com.sun.mail.imap.IMAPMessage
+import com.sun.mail.imap.IdleManager
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 import javax.mail.FetchProfile
 import javax.mail.Folder
+import javax.mail.FolderClosedException
 import javax.mail.Message
-import javax.mail.event.ConnectionAdapter
-import javax.mail.event.ConnectionEvent
 
 /**
  * Wrapper around the standard [IMAPFolder].
@@ -21,16 +24,11 @@ class KourrierFolder internal constructor(
     internal val imapFolder: IMAPFolder,
     private var mode: KourrierFolderMode,
     private val keepAlive: Boolean,
+    private val idleManager: IdleManager,
 ) {
     private var profile = FetchProfile()
 
-    private val connectionListener = object : ConnectionAdapter() {
-        override fun disconnected(e: ConnectionEvent?) {
-            println("Disconnected")
-            setConnection(mode)
-            println("Reconnected")
-        }
-    }
+    private var keeper: ScheduledExecutorService? = null
 
     /**
      * The current state of the folder.
@@ -81,13 +79,37 @@ class KourrierFolder internal constructor(
         if (!imapFolder.isOpen)
             throw KourrierIMAPFolderStateException("Cannot close a folder that is already closed.")
 
-        imapFolder.removeConnectionListener(connectionListener)
+        keeper?.shutdown()
         imapFolder.close(expunge)
     }
 
     private fun setConnection(mode: KourrierFolderMode) {
         imapFolder.open(mode.toRawFolderMode())
         this.mode = mode
+    }
+
+    private fun setKeepAlive() {
+        keeper = Executors.newScheduledThreadPool(1)
+        val job = Runnable {
+            fun reIdle() {
+                imapFolder.doCommand {
+                    it.simpleCommand("NOOP", null)
+                    null
+                }
+                idleManager.watch(imapFolder)
+            }
+            try {
+                reIdle()
+            } catch (e: FolderClosedException) {
+                open(mode)
+            }
+        }
+        keeper?.scheduleAtFixedRate(
+            job,
+            120_000L,
+            120_000L,
+            TimeUnit.MILLISECONDS
+        )
     }
 
     /**
@@ -101,7 +123,7 @@ class KourrierFolder internal constructor(
 
         setConnection(mode)
         if (keepAlive) {
-            imapFolder.addConnectionListener(connectionListener)
+            setKeepAlive()
         }
     }
 
