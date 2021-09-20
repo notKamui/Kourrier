@@ -20,7 +20,7 @@ repository:
   <dependency>
     <groupId>com.notkamui.libs</groupId>
     <artifactId>kourrier</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
   </dependency>
 </dependencies>
 ```
@@ -37,7 +37,7 @@ repositories {
 }
 
 dependencies {
-  implementation("com.notkamui.libs:kourrier:0.1.0")
+  implementation("com.notkamui.libs:kourrier:0.2.0")
 }
 ```
 </p>
@@ -53,7 +53,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.notkamui.libs:kourrier:0.1.0'
+  implementation 'com.notkamui.libs:kourrier:0.2.0'
 }
 ```
 </p>
@@ -67,5 +67,4 @@ Please refer to the [Wiki](https://github.com/notKamui/Kourrier/wiki)
 
 ## Future plans
 
-- Keep alive
 - SMTP connection
