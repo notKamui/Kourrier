@@ -51,8 +51,16 @@ class KourrierIMAPSession internal constructor(
     override fun close() {
         if (!store.isConnected)
             throw KourrierIMAPSessionStateException("Cannot close a session that is already closed.")
+
         idleManager.stop()
         store.close()
+    }
+
+    private fun setConnection() {
+        idleManager = IdleManager(session, Executors.newCachedThreadPool())
+        with(connectionInfo) {
+            store.connect(hostname, port, username, password)
+        }
     }
 
     /**
@@ -63,10 +71,8 @@ class KourrierIMAPSession internal constructor(
     fun open() {
         if (store.isConnected)
             throw KourrierIMAPSessionStateException("Cannot open a session that is already open.")
-        idleManager = IdleManager(session, Executors.newCachedThreadPool())
-        with(connectionInfo) {
-            store.connect(hostname, port, username, password)
-        }
+
+        setConnection()
     }
 
     /**
@@ -87,20 +93,24 @@ class KourrierIMAPSession internal constructor(
      *
      * **Note that some mail servers need ReadWrite permissions for a folder to be listenable.**
      *
+     * [keepAlive] is an optional parameter that indicates whether
+     * the connection should be kept alive at all cost (until being close manually).
+     * (defaults to false)
+     *
      * @throws KourrierIMAPSessionStateException if the session is closed.
      */
     fun folder(
         name: String,
         mode: KourrierFolderMode,
         listener: KourrierFolderListener? = null,
+        keepAlive: Boolean = false,
         callback: KourrierFolder.() -> Unit = {}
     ): KourrierFolder {
         if (!store.isConnected)
             throw KourrierIMAPSessionStateException("Cannot interact with a closed session.")
 
         val folder = store.getFolder(name) as IMAPFolder
-        folder.open(mode.toRawFolderMode())
-        val kfolder = KourrierFolder(folder)
+        val kfolder = KourrierFolder(folder, mode, keepAlive, idleManager)
         listener?.let { kfolder.addListener(it) }
         kfolder.callback()
         return kfolder
@@ -154,6 +164,7 @@ fun Kourrier.imap(
  *
  * - Debug mode can be enabled with [debugMode] (defaults to false).
  * - SSL can be enabled with [enableSSL] (defaults to true).
+ *
  */
 fun Kourrier.imap(
     hostname: String,
