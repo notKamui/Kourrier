@@ -110,7 +110,13 @@ class KourrierIMAPSession internal constructor(
             throw KourrierIMAPSessionStateException("Cannot interact with a closed session.")
 
         val folder = store.getFolder(name) as IMAPFolder
-        val kfolder = KourrierFolder(folder, mode, keepAlive, idleManager)
+        val kfolder = KourrierFolder(
+            folder,
+            mode,
+            keepAlive,
+            idleManager,
+            connectionInfo.debugMode
+        )
         listener?.let { kfolder.addListener(it) }
         kfolder.callback()
         return kfolder

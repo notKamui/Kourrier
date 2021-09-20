@@ -24,6 +24,7 @@ class KourrierFolder internal constructor(
     private var mode: KourrierFolderMode,
     private val keepAlive: Boolean,
     private val idleManager: IdleManager,
+    private val debugMode: Boolean
 ) {
     private var profile = FetchProfile()
 
@@ -96,7 +97,12 @@ class KourrierFolder internal constructor(
         if (!imapFolder.isOpen)
             throw KourrierIMAPFolderStateException("Cannot close a folder that is already closed.")
 
-        job.interrupt()
+        try {
+            job.interrupt()
+        } catch (e: InterruptedException) {
+            if (debugMode)
+                println("Kourrier Notice: Successfully interrupted keep alive")
+        }
         imapFolder.close(expunge)
     }
 
