@@ -26,7 +26,15 @@ import javax.mail.search.SizeTerm
 import javax.mail.search.SubjectTerm
 
 /**
- * DSL builder for creating a valid [SearchTerm].
+ * Final search data that holds the information about the search itself and sort.
+ */
+data class KourrierSearchData(val search: SearchTerm, val sortedBy: Set<KourrierSortTerm>) {
+    val hasSortTerms: Boolean
+        get() = sortedBy.isNotEmpty()
+}
+
+/**
+ * DSL builder for creating a valid [KourrierSearchData].
  */
 class KourrierSearch internal constructor() {
     private val terms = mutableListOf<SearchTerm>()
@@ -44,18 +52,15 @@ class KourrierSearch internal constructor() {
         get() = sortedBy.isNotEmpty()
 
     /**
-     * The list of the sort terms that have been applied.
+     * Builds and return the final [KourrierSearchData] (null if no search terms were added).
      */
-    val sortTerms: List<KourrierSortTerm>
-        get() = sortedBy.toList()
-
-    /**
-     * Builds and return the final [SearchTerm] (null if no search terms were added).
-     */
-    fun build(): SearchTerm? = when (terms.size) {
+    fun build(): KourrierSearchData? = when (terms.size) {
         0 -> null
-        1 -> terms.first()
-        else -> terms.reduce { acc, next -> acc and next }
+        1 -> KourrierSearchData(terms.first(), sortedBy)
+        else -> KourrierSearchData(
+            terms.reduce { acc, next -> acc and next },
+            sortedBy
+        )
     }
 
     /**

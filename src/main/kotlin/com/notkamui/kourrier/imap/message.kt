@@ -2,13 +2,15 @@ package com.notkamui.kourrier.imap
 
 import com.sun.mail.imap.IMAPFolder
 import com.sun.mail.imap.IMAPMessage
+import javax.mail.Address
 import javax.mail.Header
+import javax.mail.Part
 import javax.mail.internet.MimeMultipart
 
 /**
  * Wrapper around the standard [IMAPMessage].
  */
-class KourrierIMAPMessage(private val message: IMAPMessage) {
+data class KourrierIMAPMessage(private val message: IMAPMessage) : Part by message {
     /**
      * UID of the message.
      */
@@ -19,8 +21,8 @@ class KourrierIMAPMessage(private val message: IMAPMessage) {
     /**
      * Sender of the message.
      */
-    val from: String by lazy {
-        message.from[0].toString()
+    val from: Array<out Address> by lazy {
+        message.from
     }
 
     /**

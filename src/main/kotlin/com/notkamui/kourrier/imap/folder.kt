@@ -139,7 +139,7 @@ class KourrierFolder internal constructor(
      */
     operator fun get(range: IntRange, prefetch: Boolean = true): List<KourrierIMAPMessage>? {
         val messages: Array<out Message> = try {
-            imapFolder.getMessages(range.toList().toIntArray())
+            imapFolder.getMessages(range.first, range.last)
         } catch (e: IndexOutOfBoundsException) {
             null
         } ?: return null
@@ -157,18 +157,16 @@ class KourrierFolder internal constructor(
         builder.callback()
         val search = builder.build()
 
-        val rawMessages: Array<out Message>? = if (builder.hasSortTerms) {
-            val sort = builder.sortTerms.map { it.toRawSortTerm() }.toTypedArray()
-            search?.let { imapFolder.getSortedMessages(sort, it) }
+        val rawMessages: Array<out Message> = if (search?.hasSortTerms == true) {
+            imapFolder.getSortedMessages(search.sortedBy.map { it.toRawSortTerm() }.toTypedArray())
         } else {
-            search?.let { imapFolder.search(it) }
+            search?.let { imapFolder.search(it.search) } ?: arrayOf()
         }
 
-        rawMessages?.let { imapFolder.fetch(it, profile) }
-        val messages = rawMessages?.map { KourrierIMAPMessage(it as IMAPMessage) }
-            ?: listOf()
+        imapFolder.fetch(rawMessages, profile)
+        val messages = rawMessages.map { KourrierIMAPMessage(it as IMAPMessage) }
 
-        if (builder.markAsRead && rawMessages != null) {
+        if (builder.markAsRead) {
             imapFolder.setFlags(
                 rawMessages,
                 KourrierFlags(KourrierFlag.Seen).rawFlags,
