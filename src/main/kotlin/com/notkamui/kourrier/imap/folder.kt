@@ -36,15 +36,20 @@ class KourrierFolder internal constructor(
             }
             idleManager.watch(imapFolder)
         }
-        while (true) {
-            Thread.sleep(60_000L)
-            try {
-                reIdle()
-            } catch (e: FolderClosedException) {
-                setConnection(mode)
-            } catch (e: StoreClosedException) {
-                throw KourrierIMAPSessionStateException("Couldn't keep ${imapFolder.name} open. Session was forcefully closed.")
+        try {
+            while (true) {
+                Thread.sleep(60_000L)
+                try {
+                    reIdle()
+                } catch (e: FolderClosedException) {
+                    setConnection(mode)
+                } catch (e: StoreClosedException) {
+                    throw KourrierIMAPSessionStateException("Couldn't keep ${imapFolder.name} open. Session was forcefully closed.")
+                }
             }
+        } catch (e: InterruptedException) {
+            if (debugMode)
+                println("Kourrier Notice: Successfully interrupted keep alive")
         }
     }
 
@@ -97,12 +102,7 @@ class KourrierFolder internal constructor(
         if (!imapFolder.isOpen)
             throw KourrierIMAPFolderStateException("Cannot close a folder that is already closed.")
 
-        try {
-            job.interrupt()
-        } catch (e: InterruptedException) {
-            if (debugMode)
-                println("Kourrier Notice: Successfully interrupted keep alive")
-        }
+        job.interrupt()
         imapFolder.close(expunge)
     }
 
