@@ -6,7 +6,7 @@ version = "0.2.0"
 val jvmVersion = "1.8"
 
 plugins {
-    kotlin("jvm") version "1.5.30"
+    kotlin("jvm") version "1.5.31"
     id("org.jlleitschuh.gradle.ktlint") version "10.2.0"
     java
     `maven-publish`
