@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 group = "com.notkamui.libs"
-version = "0.2.0"
+version = "0.2.1"
 val jvmVersion = "1.8"
 
 plugins {
