@@ -126,32 +126,32 @@ class KourrierIMAPSession internal constructor(
      * Adds a [listener] to a [KourrierFolder].
      */
     fun KourrierFolder.addListener(listener: KourrierFolderListener) {
-        this.imapFolder.addMessageCountListener(object : MessageCountListener {
+        imapFolder.addMessageCountListener(object : MessageCountListener {
             override fun messagesAdded(event: MessageCountEvent) {
                 event.messages.forEach {
                     listener.onMessageReceived(KourrierIMAPMessage(it as IMAPMessage))
                 }
-                idleManager.watch(this@addListener.imapFolder)
+                idleManager.watch(imapFolder)
             }
 
             override fun messagesRemoved(event: MessageCountEvent) {
                 event.messages.forEach {
                     listener.onMessageRemoved(KourrierIMAPMessage(it as IMAPMessage))
                 }
-                idleManager.watch(this@addListener.imapFolder)
+                idleManager.watch(imapFolder)
             }
         })
 
-        this.imapFolder.addMessageChangedListener { event: MessageChangedEvent ->
+        imapFolder.addMessageChangedListener { event: MessageChangedEvent ->
             val message = KourrierIMAPMessage(event.message as IMAPMessage)
             when (event.messageChangeType) {
                 MessageChangedEvent.FLAGS_CHANGED -> listener.onMessageFlagsChanged(message)
                 MessageChangedEvent.ENVELOPE_CHANGED -> listener.onMessageEnvelopeChanged(message)
             }
-            idleManager.watch(this.imapFolder)
+            idleManager.watch(imapFolder)
         }
 
-        idleManager.watch(this.imapFolder)
+        idleManager.watch(imapFolder)
     }
 }
 
