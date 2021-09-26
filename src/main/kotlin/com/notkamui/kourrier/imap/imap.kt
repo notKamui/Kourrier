@@ -1,14 +1,18 @@
 package com.notkamui.kourrier.imap
 
 import com.notkamui.kourrier.core.Kourrier
+import com.notkamui.kourrier.core.KourrierAuthenticationException
+import com.notkamui.kourrier.core.KourrierConnectException
 import com.notkamui.kourrier.core.KourrierConnectionInfo
 import com.notkamui.kourrier.core.KourrierIMAPSessionStateException
 import com.sun.mail.imap.IMAPFolder
 import com.sun.mail.imap.IMAPMessage
 import com.sun.mail.imap.IdleManager
+import com.sun.mail.util.MailConnectException
 import java.io.Closeable
 import java.util.Properties
 import java.util.concurrent.Executors
+import javax.mail.AuthenticationFailedException
 import javax.mail.Session
 import javax.mail.Store
 import javax.mail.event.MessageChangedEvent
@@ -59,7 +63,13 @@ class KourrierIMAPSession internal constructor(
     private fun setConnection() {
         idleManager = IdleManager(session, Executors.newCachedThreadPool())
         with(connectionInfo) {
-            store.connect(hostname, port, username, password)
+            try {
+                store.connect(hostname, port, username, password)
+            } catch (e: AuthenticationFailedException) {
+                throw KourrierAuthenticationException("Authentication failed")
+            } catch (e: MailConnectException) {
+                throw KourrierConnectException("Unknown host")
+            }
         }
     }
 

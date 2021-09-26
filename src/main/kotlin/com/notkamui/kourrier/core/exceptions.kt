@@ -6,6 +6,18 @@ import com.notkamui.kourrier.imap.KourrierIMAPSession
 import com.notkamui.kourrier.search.KourrierSortTerm
 
 /**
+ * Is thrown when an issue during connection happens.
+ */
+open class KourrierConnectException
+internal constructor(message: String) : Exception(message)
+
+/**
+ * Is thrown when an authentication error happens.
+ */
+class KourrierAuthenticationException
+internal constructor(message: String) : KourrierConnectException(message)
+
+/**
  * Is thrown when an inconsistency in the [KourrierIMAPSession] status happens.
  */
 class KourrierIMAPSessionStateException
