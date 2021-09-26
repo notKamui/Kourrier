@@ -28,30 +28,7 @@ class KourrierFolder internal constructor(
 ) {
     private var profile = FetchProfile()
 
-    private val job = Thread {
-        fun reIdle() {
-            imapFolder.doCommand {
-                it.simpleCommand("NOOP", null)
-                null
-            }
-            idleManager.watch(imapFolder)
-        }
-        try {
-            while (true) {
-                Thread.sleep(60_000L)
-                try {
-                    reIdle()
-                } catch (e: FolderClosedException) {
-                    setConnection(mode)
-                } catch (e: StoreClosedException) {
-                    throw KourrierIMAPSessionStateException("Couldn't keep ${imapFolder.name} open. Session was forcefully closed.")
-                }
-            }
-        } catch (e: InterruptedException) {
-            if (debugMode)
-                println("Kourrier Notice: Successfully interrupted keep alive")
-        }
-    }
+    private lateinit var job: Thread
 
     /**
      * The current state of the folder.
@@ -93,6 +70,31 @@ class KourrierFolder internal constructor(
         open(mode)
     }
 
+    private fun makeJob(): Thread = Thread {
+        fun reIdle() {
+            imapFolder.doCommand {
+                it.simpleCommand("NOOP", null)
+                null
+            }
+            idleManager.watch(imapFolder)
+        }
+        try {
+            while (true) {
+                Thread.sleep(60_000L)
+                try {
+                    reIdle()
+                } catch (e: FolderClosedException) {
+                    setConnection(mode)
+                } catch (e: StoreClosedException) {
+                    throw KourrierIMAPSessionStateException("Couldn't keep ${imapFolder.name} open. Session was forcefully closed.")
+                }
+            }
+        } catch (e: InterruptedException) {
+            if (debugMode)
+                println("Kourrier Notice: Successfully interrupted keep alive")
+        }
+    }
+
     /**
      * Closes the current [IMAPFolder], and [expunge]s it or not (defaults to false).
      *
@@ -122,6 +124,7 @@ class KourrierFolder internal constructor(
 
         setConnection(mode)
         if (keepAlive) {
+            job = makeJob()
             job.start()
         }
     }
