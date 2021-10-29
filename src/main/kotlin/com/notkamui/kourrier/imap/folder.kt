@@ -78,20 +78,18 @@ class KourrierFolder internal constructor(
             }
             idleManager.watch(imapFolder)
         }
-        try {
-            while (true) {
+
+        while (true) {
+            try {
                 Thread.sleep(60_000L)
-                try {
-                    reIdle()
-                } catch (e: FolderClosedException) {
-                    setConnection(mode)
-                } catch (e: StoreClosedException) {
-                    throw KourrierIMAPSessionStateException("Couldn't keep ${imapFolder.name} open. Session was forcefully closed.")
-                }
+                synchronized(idleManager, ::reIdle)
+            } catch (e: FolderClosedException) {
+                setConnection(mode)
+            } catch (e: StoreClosedException) {
+                throw KourrierIMAPSessionStateException("Couldn't keep ${imapFolder.name} open. Session was forcefully closed.")
+            } catch (_: InterruptedException) {
+                return@Thread
             }
-        } catch (e: InterruptedException) {
-            if (debugMode)
-                println("Kourrier Notice: Successfully interrupted keep alive")
         }
     }
 
